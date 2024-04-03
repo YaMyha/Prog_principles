@@ -2,6 +2,8 @@ import configparser
 
 
 class ConfigManager:
+    path = "config/config.ini"
+
     def __init__(self):
         self.config = configparser.ConfigParser()
         self.create_config()
@@ -16,10 +18,10 @@ class ConfigManager:
             "database": "dubadidib"
         }
 
-        with open('config.ini', 'w') as config_file:
+        with open(self.path, 'w') as config_file:
             self.config.write(config_file)
 
     def get_config(self):
-        self.config.read('config.ini')
+        self.config.read(self.path)
         config_data = dict(self.config['database'])
         return config_data
