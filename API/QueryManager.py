@@ -14,9 +14,9 @@ class QueryManagerAsync:
             await conn.run_sync(Base.metadata.create_all)
 
     @staticmethod
-    async def insert_user(username: str, password_hash: str = None, email: str = None):
+    async def insert_user(username: str, password_hash: str = None, email: str = None, rating: int = 0):
         async with async_session_factory() as session:
-            user = UsersORM(username=username, password_hash=password_hash, email=email)
+            user = UsersORM(username=username, password_hash=password_hash, email=email, rating=rating)
             session.add(user)
             await session.flush()
             user_id = user.id
@@ -29,6 +29,30 @@ class QueryManagerAsync:
             query = select(UsersORM)
             result = await session.execute(query)
             users = result.scalars().all()
+            return users
+
+
+    @staticmethod
+    async def select_users_with_positive_rating_and_filled_email():
+        async with async_session_factory() as session:
+            """select id, username, email, rating
+                       from users
+                       where rating > 0 and email is not NULL """
+            query = (
+                select(
+                    UsersORM.id,
+                    UsersORM.username,
+                    UsersORM.email,
+                    UsersORM.rating,
+                )
+                .select_from(UsersORM)
+                .filter(and_(
+                    UsersORM.rating > 0,
+                    UsersORM.email.isnot(None)
+                ))
+            )
+            result = await session.execute(query)
+            users = result.all()
             return users
 
     @staticmethod
@@ -49,19 +73,36 @@ class QueryManagerAsync:
             await session.commit()
 
     @staticmethod
-    async def insert_post(author_id: int, title: str, description: str):
+    async def insert_post(author_id: int, title: str, description: str, tags: str = None):
         async with async_session_factory() as session:
             post = PostsORM(author_id=author_id, title=title, description=description)
             session.add(post)
             await session.flush()
             post_id = post.id
             await session.commit()
-            return post.id
+            return post_id
 
     @staticmethod
     async def select_posts():
         async with async_session_factory() as session:
             query = select(PostsORM)
+            result = await session.execute(query)
+            posts = result.scalars().all()
+            return posts
+
+    @staticmethod
+    async def select_posts_by_author(author_name: str):
+        async with async_session_factory() as session:
+            """select *
+                from posts
+                where author_id in (
+                    select id
+                    from users
+                    where username like '%Steven%'
+                );"""
+            subquery = select(UsersORM.id).select_from(UsersORM).filter(UsersORM.username.contains(author_name))
+            query = select(PostsORM).select_from(PostsORM).filter(PostsORM.author_id.in_(subquery))
+
             result = await session.execute(query)
             posts = result.scalars().all()
             return posts

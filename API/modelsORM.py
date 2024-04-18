@@ -21,6 +21,7 @@ class UsersORM(Base):
     username: Mapped[str]
     password_hash: Mapped[Optional[str]]
     email: Mapped[Optional[str]]
+    rating: Mapped[int]
     created_at: Mapped[created_at]
     posts: Mapped[list["PostsORM"]] = relationship(
         back_populates="author",
@@ -35,6 +36,7 @@ class PostsORM(Base):
     title: Mapped[str_256]
     # TO DO: change type of description
     description: Mapped[str]
+    tags: Mapped[Optional[str]]
     # comments: Mapped[list["CommentsORM"]] = relationship()
     created_at: Mapped[created_at]
     updated_at: Mapped[updated_at]
