@@ -1,5 +1,7 @@
-from sqlalchemy import Integer, and_, cast, func, insert, inspect, or_, select, text
+from sqlalchemy import Integer, and_, cast, func, insert, inspect, or_, select, text, String
 from sqlalchemy.orm import aliased, contains_eager, joinedload, selectinload
+from sqlalchemy.sql import expression
+from sqlalchemy.dialects.postgresql import ARRAY
 
 from database import Base, async_engine, async_session_factory
 from modelsORM import UsersORM, PostsORM
@@ -75,7 +77,7 @@ class QueryManagerAsync:
     @staticmethod
     async def insert_post(author_id: int, title: str, description: str, tags: str = None):
         async with async_session_factory() as session:
-            post = PostsORM(author_id=author_id, title=title, description=description)
+            post = PostsORM(author_id=author_id, title=title, description=description, tags=tags)
             session.add(post)
             await session.flush()
             post_id = post.id
@@ -96,13 +98,27 @@ class QueryManagerAsync:
             """select *
                 from posts
                 where author_id in (
-                    select id
+                    select id 
                     from users
                     where username like '%Steven%'
                 );"""
             subquery = select(UsersORM.id).select_from(UsersORM).filter(UsersORM.username.contains(author_name))
             query = select(PostsORM).select_from(PostsORM).filter(PostsORM.author_id.in_(subquery))
 
+            result = await session.execute(query)
+            posts = result.scalars().all()
+            return posts
+
+    @staticmethod
+    async def select_posts_by_tags(tags: list[str]):
+        async with async_session_factory() as session:
+            """select *
+                from posts
+                WHERE tags ~* '(?=.*(\W|^)secrets(\W|$))(?=.*(\W|^)men(\W|$)).*';"""
+            tags.append('.*')
+            regex_pattern = ''.join(fr"(?=.*(\W|^){tag}(\W|$))" for tag in tags)
+
+            query = select(PostsORM).where(PostsORM.tags.regexp_match(regex_pattern.replace('\\\\', '\\')))
             result = await session.execute(query)
             posts = result.scalars().all()
             return posts
