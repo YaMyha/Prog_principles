@@ -1,7 +1,7 @@
 import datetime
 from typing import Annotated, Optional
 
-from sqlalchemy import String, text, ForeignKey
+from sqlalchemy import String, text, ForeignKey, MetaData
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, relationship
 
 from database import Base, str_256
@@ -13,9 +13,12 @@ updated_at = Annotated[datetime.datetime, mapped_column(
     onupdate=datetime.datetime.utcnow,
 )]
 
+metadata = MetaData()
+
 
 class UsersORM(Base):
     __tablename__ = "users"
+    metadata = metadata
 
     id: Mapped[intpk]
     username: Mapped[str]
@@ -30,6 +33,7 @@ class UsersORM(Base):
 
 class PostsORM(Base):
     __tablename__ = "posts"
+    metadata = metadata
 
     id: Mapped[intpk]
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))

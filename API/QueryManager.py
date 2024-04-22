@@ -8,6 +8,7 @@ from modelsORM import UsersORM, PostsORM
 
 
 # TO DO: Divide the functionality into several classes or consolidate it into a generic class
+# Also pour try/catch sauce over it all
 class QueryManagerAsync:
     @staticmethod
     async def create_tables():
