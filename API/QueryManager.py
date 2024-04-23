@@ -1,3 +1,5 @@
+import pdb
+
 from sqlalchemy import Integer, and_, cast, func, insert, inspect, or_, select, text, String
 from sqlalchemy.orm import aliased, contains_eager, joinedload, selectinload
 from sqlalchemy.sql import expression
@@ -17,9 +19,9 @@ class QueryManagerAsync:
             await conn.run_sync(Base.metadata.create_all)
 
     @staticmethod
-    async def insert_user(username: str, password_hash: str = None, email: str = None, rating: int = 0):
+    async def insert_user(username: str, password_hash: str = None, email: str = None):
         async with async_session_factory() as session:
-            user = UsersORM(username=username, password_hash=password_hash, email=email, rating=rating)
+            user = UsersORM(username=username, password_hash=password_hash, email=email, rating=0)
             session.add(user)
             await session.flush()
             user_id = user.id
@@ -45,8 +47,10 @@ class QueryManagerAsync:
                 select(
                     UsersORM.id,
                     UsersORM.username,
+                    UsersORM.password_hash,
                     UsersORM.email,
                     UsersORM.rating,
+                    UsersORM.created_at,
                 )
                 .select_from(UsersORM)
                 .filter(and_(
@@ -56,6 +60,7 @@ class QueryManagerAsync:
             )
             result = await session.execute(query)
             users = result.all()
+            print(users)
             return users
 
     @staticmethod

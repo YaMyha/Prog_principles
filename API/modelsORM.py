@@ -22,7 +22,7 @@ class UsersORM(Base):
 
     id: Mapped[intpk]
     username: Mapped[str]
-    password_hash: Mapped[Optional[str]]
+    password_hash: Mapped[str]
     email: Mapped[Optional[str]]
     rating: Mapped[int]
     created_at: Mapped[created_at]

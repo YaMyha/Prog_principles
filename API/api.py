@@ -1,32 +1,50 @@
-# import asyncio
-#
-# from QueryManager import QueryManagerAsync
-# from database import async_engine
-#
-#
-# async def main():
-#     await QueryManagerAsync.create_tables()
-#     await QueryManagerAsync.insert_user(username='Steven', email='test@email.com', rating=10)
-#     await QueryManagerAsync.insert_user(username='Michael', email='test@email.com', rating=10)
-#     await QueryManagerAsync.insert_user(username='Selestina', rating=10)
-#     await QueryManagerAsync.insert_user(username='Bully', rating=-10)
-#     await QueryManagerAsync.insert_user(username='Steven Universe', rating=10)
-#     await QueryManagerAsync.insert_post(author_id=1, title="Men's secrets", description="We have a beard!",
-#                                         tags='secrets, men')
-#     await QueryManagerAsync.insert_post(author_id=1, title="Men's secrets", description="We love potatoes with meat",
-#                                         tags='secrets, men')
-#     await QueryManagerAsync.insert_post(author_id=5, title="Men's secrets", description="Friendship is a magic!",
-#                                         tags='secrets, men')
-#     await QueryManagerAsync.insert_post(author_id=3, title="Women's secrets",
-#                                         description="We can be angry if we're hungry",
-#                                         tags='secrets, women')
-#     await QueryManagerAsync.insert_post(author_id=4, title="Bully secrets", description="I don't bully anyone",
-#                                         tags='secrets, bully')
-#     # await QueryManagerAsync.select_posts_by_author('Steven')
-#     await QueryManagerAsync.select_posts_by_tags(['bully'])
-#     # await QueryManagerAsync.select_posts()
-#     await async_engine.dispose()
-#
-#
-# if __name__ == "__main__":
-#     asyncio.run(main())
+from datetime import datetime
+from typing import List, Optional
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+from QueryManager import QueryManagerAsync
+
+app = FastAPI(title="Hobby Trading", debug=True)
+
+
+class UserRead(BaseModel):
+    id: Optional[int]
+    username: str
+    password_hash: str
+    email: str
+    rating: Optional[int] = 0
+    created_at: datetime
+
+
+class UserCreate(BaseModel):
+    username: str
+    password_hash: str
+    email: str
+
+
+class Post(BaseModel):
+    author_id: int
+    title: str
+    description: str
+    tags: str
+
+
+query_manager = QueryManagerAsync()
+
+
+@app.get("/users", response_model=List[UserRead])
+async def get_user():
+    return await query_manager.select_users()
+
+
+@app.get("/users/top", response_model=List[UserRead])
+async def get_user():
+    return await query_manager.select_users_with_positive_rating_and_filled_email()
+
+
+@app.post("/users")
+async def add_user(user: UserCreate):
+    user_id = await query_manager.insert_user(**user.dict())
+    return user_id
