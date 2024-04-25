@@ -19,7 +19,22 @@ class UserC(BaseModel):
     email: str
 
 
-class Post(BaseModel):
+class UserU(BaseModel):
+    id: int
+    username: Optional[str] = None
+    hashed_password: Optional[str] = None
+    email: Optional[str] = None
+
+
+class PostC(BaseModel):
+    author_id: int
+    title: str
+    description: str
+    tags: str
+
+
+class PostR(BaseModel):
+    id: int
     author_id: int
     title: str
     description: str
