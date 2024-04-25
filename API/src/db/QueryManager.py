@@ -1,12 +1,9 @@
-import pdb
+from fastapi import Depends
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from sqlalchemy import Integer, and_, cast, func, insert, inspect, or_, select, text, String
-from sqlalchemy.orm import aliased, contains_eager, joinedload, selectinload
-from sqlalchemy.sql import expression
-from sqlalchemy.dialects.postgresql import ARRAY
-
-from database import async_engine, async_session_factory
-from modelsORM import User, Post, Base
+from db.database import async_engine, get_async_session, async_session_factory
+from db.modelsORM import User, Post, Base
 
 
 # TO DO: Divide the functionality into several classes or consolidate it into a generic class
@@ -40,8 +37,8 @@ class QueryManagerAsync:
     async def select_users_with_positive_rating_and_filled_email():
         async with async_session_factory() as session:
             """select id, username, email, rating
-                       from users
-                       where rating > 0 and email is not NULL """
+                           from users
+                           where rating > 0 and email is not NULL """
             query = (
                 select(User)
                 .filter(and_(
@@ -72,7 +69,8 @@ class QueryManagerAsync:
             await session.commit()
 
     @staticmethod
-    async def insert_post(author_id: int, title: str, description: str, tags: str = None):
+    async def insert_post(author_id: int, title: str, description: str, tags: str = None,
+                          session: AsyncSession = Depends(get_async_session)):
         async with async_session_factory() as session:
             post = Post(author_id=author_id, title=title, description=description, tags=tags)
             session.add(post)
@@ -82,7 +80,7 @@ class QueryManagerAsync:
             return post_id
 
     @staticmethod
-    async def select_posts():
+    async def select_posts(session: AsyncSession = Depends(get_async_session)):
         async with async_session_factory() as session:
             query = select(Post)
             result = await session.execute(query)
@@ -95,7 +93,7 @@ class QueryManagerAsync:
             """select *
                 from posts
                 where author_id in (
-                    select id 
+                    select id
                     from users
                     where username like '%Steven%'
                 );"""

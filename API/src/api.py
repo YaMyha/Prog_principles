@@ -1,38 +1,16 @@
-from datetime import datetime
-from typing import List, Optional
+from typing import List
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi_users import FastAPIUsers
-from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from QueryManager import QueryManagerAsync
 from auth.UserManager import get_user_manager
 from auth.auth import auth_backend
 from auth.schemas import UserRead, UserCreate
-from modelsORM import User
-
-
-class UserR(BaseModel):
-    id: Optional[int]
-    username: str
-    hashed_password: str
-    email: str
-    rating: Optional[int] = 0
-    created_at: datetime
-
-
-class UserC(BaseModel):
-    username: str
-    hashed_password: str
-    email: str
-
-
-class Post(BaseModel):
-    author_id: int
-    title: str
-    description: str
-    tags: str
-
+from db.QueryManager import QueryManagerAsync
+from db.database import get_async_session
+from db.modelsORM import User
+from validation_models import UserR, UserC
 
 query_manager = QueryManagerAsync()
 
