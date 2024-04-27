@@ -1,12 +1,16 @@
 import re
 
-from sqlalchemy import select
+from sqlalchemy import select, and_
 
 from db.database import async_session_factory
 from db.modelsORM import User, Post
+from db.services.posts_query_builder import PostsQueryBuilder
 
 
 class PostService:
+    def __init__(self):
+        self.posts_query_builder = PostsQueryBuilder()
+
     @staticmethod
     async def insert_post(author_id: int, title: str, description: str, tags: str = None):
         async with async_session_factory() as session:
@@ -17,43 +21,11 @@ class PostService:
             await session.commit()
             return post_id
 
-    @staticmethod
-    async def select_posts():
+    async def select_posts(self, parameters: dict):
         async with async_session_factory() as session:
-            query = select(Post)
-            result = await session.execute(query)
-            posts = result.scalars().all()
-            return posts
-
-    @staticmethod
-    async def select_posts_by_author(author_name: str):
-        async with async_session_factory() as session:
-            """select *
-                from posts
-                where author_id in (
-                    select id
-                    from users
-                    where username like '%Steven%'
-                );"""
-            subquery = select(User.id).select_from(User).filter(User.username.contains(author_name))
-            query = select(Post).select_from(Post).filter(Post.author_id.in_(subquery))
-
-            result = await session.execute(query)
-            posts = result.scalars().all()
-            return posts
-
-    @staticmethod
-    async def select_posts_by_tags(tags: str):
-        async with async_session_factory() as session:
-            """select *
-                from posts
-                WHERE tags ~* '(?=.*(\W|^)secrets(\W|$))(?=.*(\W|^)men(\W|$)).*';"""
-            tags = re.findall(r'\w+', tags)
-            print(tags)
-            tags.append('.*')
-            regex_pattern = ''.join(fr"(?=.*(\W|^){tag}(\W|$))" for tag in tags)
-
-            query = select(Post).where(Post.tags.regexp_match(regex_pattern.replace('\\\\', '\\')))
+            print(parameters)
+            self.posts_query_builder.match_filters(parameters)
+            query = self.posts_query_builder.get_query
             result = await session.execute(query)
             posts = result.scalars().all()
             return posts
@@ -73,6 +45,5 @@ class PostService:
         async with async_session_factory() as session:
             post = await session.get(Post, post_id)
             if post:
-                print("________________________")
                 await session.delete(post)
                 await session.commit()

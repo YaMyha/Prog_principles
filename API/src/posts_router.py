@@ -18,8 +18,9 @@ async def add_post(post: PostC):
 
 
 @router.get("/", response_model=List[PostR])
-async def get_all_posts():
-    return await post_service.select_posts()
+async def get_all_posts(author_name: str = None, tags: str = None):
+    parameters = {"author_name": author_name, "tags": tags}
+    return await post_service.select_posts(parameters)
 
 
 # @router.get("/{author_name}", response_model=List[PostR])
