@@ -11,13 +11,9 @@ router = APIRouter(
 
 
 @router.get("/", response_model=List[UserR])
-async def get_all_users():
-    return await user_service.select_users()
-
-
-@router.get("/top", response_model=List[UserR])
-async def get_top_users():
-    return await user_service.select_users_with_positive_rating_and_filled_email()
+async def get_users(user_id: int = None, rating_bottom: int = None, rating_top: int = None):
+    parameters = {"user_id": user_id, "rating_bottom": rating_bottom, "rating_top": rating_top}
+    return await user_service.select_posts(parameters)
 
 
 @router.post("/")

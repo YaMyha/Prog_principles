@@ -23,7 +23,6 @@ class PostService:
 
     async def select_posts(self, parameters: dict):
         async with async_session_factory() as session:
-            print(parameters)
             self.posts_query_builder.match_filters(parameters)
             query = self.posts_query_builder.get_query
             result = await session.execute(query)

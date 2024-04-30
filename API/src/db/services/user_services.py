@@ -2,15 +2,13 @@ from sqlalchemy import and_, select
 
 from db.database import async_engine, async_session_factory
 from db.modelsORM import User, Base
+from db.services.users_query_builder import UsersQueryBuilder
 
 
 # Also pour try/catch sauce over it all
 class UserService:
-    @staticmethod
-    async def create_tables():
-        async with async_engine.begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all)
-            await conn.run_sync(Base.metadata.create_all)
+    def __init__(self):
+        self.users_query_builder = UsersQueryBuilder()
 
     @staticmethod
     async def insert_user(username: str, hashed_password: str = None, email: str = None):
@@ -22,31 +20,13 @@ class UserService:
             await session.commit()
             return user_id
 
-    @staticmethod
-    async def select_users():
+    async def select_posts(self, parameters: dict):
         async with async_session_factory() as session:
-            query = select(User)
+            self.users_query_builder.match_filters(parameters)
+            query = self.users_query_builder.get_query
             result = await session.execute(query)
-            users = result.scalars().all()
-            return users
-
-    @staticmethod
-    async def select_users_with_positive_rating_and_filled_email():
-        async with async_session_factory() as session:
-            """select id, username, email, rating
-                           from users
-                           where rating > 0 and email is not NULL """
-            query = (
-                select(User)
-                .filter(and_(
-                    User.rating > 0,
-                    User.email.isnot(None)
-                ))
-            )
-            result = await session.execute(query)
-            users = result.scalars().all()
-            print(users)
-            return users
+            posts = result.scalars().all()
+            return posts
 
     @staticmethod
     async def update_user(uid: int, attrs: dict = None):
@@ -62,5 +42,6 @@ class UserService:
     async def delete_user(uid: int):
         async with async_session_factory() as session:
             user = await session.get(User, uid)
-            session.delete(user)
-            await session.commit()
+            if user:
+                await session.delete(user)
+                await session.commit()

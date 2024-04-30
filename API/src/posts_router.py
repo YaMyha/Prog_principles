@@ -18,19 +18,9 @@ async def add_post(post: PostC):
 
 
 @router.get("/", response_model=List[PostR])
-async def get_all_posts(author_name: str = None, tags: str = None):
+async def get_posts(author_name: str = None, tags: str = None):
     parameters = {"author_name": author_name, "tags": tags}
     return await post_service.select_posts(parameters)
-
-
-# @router.get("/{author_name}", response_model=List[PostR])
-# async def get_posts_by_author(author_name: str):
-#     return await post_service.select_posts_by_author(author_name)
-
-
-@router.get("/{tags}", response_model=List[PostR])
-async def get_posts_by_tags(tags: str):
-    return await post_service.select_posts_by_tags(tags)
 
 
 @router.post("/update")

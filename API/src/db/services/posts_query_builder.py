@@ -25,12 +25,6 @@ class PostsQueryBuilder(QueryBuilderBase):
         self.reset()
         return query
 
-    def match_filters(self, params: dict) -> None:
-        print(params)
-        for key, value in params.items():
-            if value:
-                self.arg_to_func.get(key)(value)
-
     def filter_by_author(self, author_name: str) -> None:
         """select *
             from posts
