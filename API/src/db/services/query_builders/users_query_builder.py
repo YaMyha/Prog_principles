@@ -1,9 +1,7 @@
-import re
-
 from sqlalchemy import select, and_
 
 from db.modelsORM import User
-from db.services.base_query_builder import QueryBuilderBase
+from db.services.query_builders.base_query_builder import QueryBuilderBase
 
 
 class UsersQueryBuilder(QueryBuilderBase):

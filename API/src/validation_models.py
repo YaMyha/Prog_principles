@@ -16,7 +16,7 @@ class UserR(BaseModel):
 class UserC(BaseModel):
     username: str
     hashed_password: str
-    email: Optional[str]
+    email: str
 
 
 class UserU(BaseModel):

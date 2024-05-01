@@ -4,8 +4,8 @@ from auth.UserManager import get_user_manager
 from auth.auth import auth_backend
 from auth.schemas import UserRead, UserCreate
 from db.modelsORM import User
-from users_router import router as users_router
-from posts_router import router as posts_router
+from routers.users_router import router as users_router
+from routers.posts_router import router as posts_router
 
 app = FastAPI(title="Hobby Trading", debug=True)
 

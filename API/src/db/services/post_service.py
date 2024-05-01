@@ -1,10 +1,6 @@
-import re
-
-from sqlalchemy import select, and_
-
 from db.database import async_session_factory
-from db.modelsORM import User, Post
-from db.services.posts_query_builder import PostsQueryBuilder
+from db.modelsORM import Post
+from db.services.query_builders.posts_query_builder import PostsQueryBuilder
 
 
 class PostService:

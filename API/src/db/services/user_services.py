@@ -1,8 +1,6 @@
-from sqlalchemy import and_, select
-
-from db.database import async_engine, async_session_factory
-from db.modelsORM import User, Base
-from db.services.users_query_builder import UsersQueryBuilder
+from db.database import async_session_factory
+from db.modelsORM import User
+from db.services.query_builders.users_query_builder import UsersQueryBuilder
 
 
 # Also pour try/catch sauce over it all
@@ -11,7 +9,7 @@ class UserService:
         self.users_query_builder = UsersQueryBuilder()
 
     @staticmethod
-    async def insert_user(username: str, hashed_password: str = None, email: str = None):
+    async def insert_user(username: str, hashed_password: str, email: str = None):
         async with async_session_factory() as session:
             user = User(username=username, hashed_password=hashed_password, email=email, rating=0)
             session.add(user)
